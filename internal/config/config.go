@@ -178,8 +178,15 @@ func Load(path string) (Config, error) {
 	if err != nil {
 		return Config{}, err
 	}
-	defer f.Close()
-	return Parse(f)
+	c, parseErr := Parse(f)
+	closeErr := f.Close()
+	if parseErr != nil {
+		return Config{}, parseErr
+	}
+	if closeErr != nil {
+		return Config{}, fmt.Errorf("close configuration: %w", closeErr)
+	}
+	return c, nil
 }
 
 func Marshal(c Config) ([]byte, error) {
@@ -219,15 +226,15 @@ func Save(path string, c Config) error {
 		}
 	}()
 	if err := f.Chmod(0o600); err != nil {
-		f.Close()
+		_ = f.Close()
 		return fmt.Errorf("secure temporary configuration: %w", err)
 	}
 	if _, err := f.Write(b); err != nil {
-		f.Close()
+		_ = f.Close()
 		return fmt.Errorf("write temporary configuration: %w", err)
 	}
 	if err := f.Sync(); err != nil {
-		f.Close()
+		_ = f.Close()
 		return fmt.Errorf("sync temporary configuration: %w", err)
 	}
 	if err := f.Close(); err != nil {

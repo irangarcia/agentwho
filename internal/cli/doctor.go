@@ -154,11 +154,12 @@ func (a *app) doctorCmd() *cobra.Command {
 					fmt.Fprintln(a.out, "   ", a.warning("Fix:"), item.Fix)
 				}
 			}
-			if problems == 0 {
+			switch problems {
+			case 0:
 				fmt.Fprintln(a.out, "\n"+a.success("Result: Everything looks good."))
-			} else if problems == 1 {
+			case 1:
 				fmt.Fprintln(a.out, "\n"+a.warning("Result: 1 problem found"))
-			} else {
+			default:
 				fmt.Fprintln(a.out, "\n"+a.warning(fmt.Sprintf("Result: %d problems found", problems)))
 			}
 			if critical {

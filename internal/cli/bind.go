@@ -88,7 +88,7 @@ func (a *app) bindCmd() *cobra.Command {
 			switch {
 			case repo:
 				if ctx.Remote == "" {
-					return fmt.Errorf("this repository does not have a usable `origin` remote\n\nUse a directory binding instead:\n  agentwho bind %s --path .", profile)
+					return fmt.Errorf("this repository does not have a usable `origin` remote\n\nUse a directory binding instead:\n  agentwho bind %s --path ./", profile)
 				}
 				match.GitRemote = ctx.Remote
 			case organization:
@@ -272,7 +272,9 @@ func (a *app) unbindCmd() *cobra.Command {
 				return fmt.Errorf("no binding applies to the current directory\n\nRun `agentwho rules` to see all bindings")
 			}
 			typeName, value := result.Matched.Match.TypeValue()
-			fmt.Fprint(a.out, "Binding to remove:\n\n")
+			if _, err := fmt.Fprint(a.out, "Binding to remove:\n\n"); err != nil {
+				return err
+			}
 			fmt.Fprintf(a.out, "  %-13s %s\n  Profile:      %s\n  Safety mode:  %s\n", matcherHeading(typeName)+":", value, result.Matched.Profile, result.Matched.Enforcement)
 			if !yes {
 				if !interactive(a.stdinFile) {

@@ -5,9 +5,10 @@
 **You never have to remember to switch AI accounts again.**
 
 [![CI](https://github.com/irangarcia/agentwho/actions/workflows/ci.yml/badge.svg)](https://github.com/irangarcia/agentwho/actions/workflows/ci.yml)
-[![Go Report Card](https://goreportcard.com/badge/github.com/irangarcia/agentwho)](https://goreportcard.com/report/github.com/irangarcia/agentwho)
+[![golangci-lint](https://github.com/irangarcia/agentwho/actions/workflows/lint.yml/badge.svg)](https://github.com/irangarcia/agentwho/actions/workflows/lint.yml)
 [![Latest Release](https://img.shields.io/github/v/release/irangarcia/agentwho?display_name=tag&sort=semver)](https://github.com/irangarcia/agentwho/releases/latest)
 [![License](https://img.shields.io/github/license/irangarcia/agentwho)](LICENSE)
+[![Homebrew](https://img.shields.io/badge/Homebrew-irangarcia%2Ftap-fbb040?logo=homebrew)](https://github.com/irangarcia/homebrew-tap)
 
 ```console
 $ cd ~/work/acme/backend
@@ -67,6 +68,13 @@ The real Claude and Codex executables are never replaced. See [Architecture](doc
 
 ## Installation
 
+### Homebrew (recommended)
+
+```sh
+brew install irangarcia/tap/agentwho
+agentwho init
+```
+
 ### With Go
 
 ```sh
@@ -92,8 +100,6 @@ agentwho init
 ```sh
 make install PREFIX=/usr/local
 ```
-
-> A Homebrew formula is not available yet. A Homebrew badge and installation command will be added when it is published.
 
 ## Requirements
 

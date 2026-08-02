@@ -18,6 +18,7 @@ git clone https://github.com/irangarcia/agentwho.git
 cd agentwho
 make test
 make vet
+make lint
 make build
 ```
 
@@ -29,6 +30,7 @@ Before submitting a change:
 gofmt -w ./cmd ./internal ./integration
 go test ./...
 go vet ./...
+golangci-lint run
 ```
 
 Do not run formatting commands over generated or third-party files.

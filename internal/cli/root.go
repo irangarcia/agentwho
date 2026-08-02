@@ -22,21 +22,26 @@ type app struct {
 	stdinFile   *os.File
 }
 
+// Version is replaced at build time for releases.
+var Version = "dev"
+
 func New() *cobra.Command {
 	a := &app{in: os.Stdin, out: os.Stdout, errout: os.Stderr, stdinFile: os.Stdin}
 	root := &cobra.Command{
 		Use:          "agentwho",
 		Short:        "Use the right Claude or Codex account for every project",
 		Long:         "AgentWho keeps Claude and Codex on the right account for each project.",
+		Version:      Version,
 		SilenceUsage: true, SilenceErrors: true,
 		CompletionOptions: cobra.CompletionOptions{DisableDefaultCmd: true},
 	}
+	root.SetVersionTemplate("agentwho {{.Version}}\n")
 	root.SetIn(a.in)
 	root.SetOut(a.out)
 	root.SetErr(a.errout)
 	root.AddCommand(
 		a.initCmd(), a.installCmd(), a.uninstallCmd(), a.doctorCmd(), a.profileCmd(),
-		a.bindCmd(), a.unbindCmd(), a.rulesCmd(), a.useCmd(), a.currentCmd(), a.statusCmd(), a.promptCmd(), a.shellCmd(), a.completionCmd(), a.internalCmd(),
+		a.bindCmd(), a.unbindCmd(), a.rulesCmd(), a.useCmd(), a.currentCmd(), a.statusCmd(), a.promptCmd(), a.versionCmd(), a.shellCmd(), a.completionCmd(), a.internalCmd(),
 	)
 	defaultHelp := root.HelpFunc()
 	root.SetHelpFunc(func(cmd *cobra.Command, args []string) {
@@ -93,6 +98,7 @@ Shell:
   completion <shell>                Print shell completion code
 
 Help:
+  version                           Show the AgentWho version
   help <command>                    Show help for a command
 
 Run ` + "`agentwho <command> --help`" + ` for examples and options.
@@ -171,14 +177,4 @@ func askYesDefault(r *bufio.Reader, w io.Writer, prompt string) bool {
 	answer, _ := r.ReadString('\n')
 	answer = strings.ToLower(strings.TrimSpace(answer))
 	return answer == "" || answer == "y" || answer == "yes"
-}
-
-func ask(r *bufio.Reader, w io.Writer, prompt, fallback string) string {
-	fmt.Fprintf(w, "%s [%s]: ", prompt, fallback)
-	answer, _ := r.ReadString('\n')
-	answer = strings.TrimSpace(answer)
-	if answer == "" {
-		return fallback
-	}
-	return answer
 }

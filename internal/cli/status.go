@@ -174,13 +174,6 @@ func (a *app) currentCmd() *cobra.Command {
 	return cmd
 }
 
-func installed(v bool) string {
-	if v {
-		return "installed"
-	}
-	return "not installed"
-}
-
 func integrationState(installed, active bool) string {
 	if installed && active {
 		return "AgentWho active"
@@ -189,14 +182,6 @@ func integrationState(installed, active bool) string {
 		return "installed, not active in PATH"
 	}
 	return "AgentWho not installed"
-}
-
-func (a *app) integrationState(installed, active bool) string {
-	state := integrationState(installed, active)
-	if installed && active {
-		return a.success(state)
-	}
-	return a.warning(state)
 }
 
 type promptOutput struct {

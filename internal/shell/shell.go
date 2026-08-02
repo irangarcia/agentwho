@@ -219,11 +219,11 @@ func atomic(path string, data []byte) error {
 		}
 	}()
 	if err := f.Chmod(mode); err != nil {
-		f.Close()
+		_ = f.Close()
 		return err
 	}
 	if _, err := f.Write(data); err != nil {
-		f.Close()
+		_ = f.Close()
 		return err
 	}
 	if err := f.Close(); err != nil {

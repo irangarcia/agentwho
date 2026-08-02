@@ -1,16 +1,22 @@
 PREFIX ?= $(HOME)/.local
 BINDIR ?= $(PREFIX)/bin
+VERSION ?= dev
+LDFLAGS ?= -X github.com/irangarcia/agentwho/internal/cli.Version=$(VERSION)
 
-.PHONY: build test vet install uninstall
+.PHONY: build test vet lint install uninstall
 
 build:
-	go build -o bin/agentwho ./cmd/agentwho
+	mkdir -p bin
+	go build -trimpath -ldflags "$(LDFLAGS)" -o bin/agentwho ./cmd/agentwho
 
 test:
 	go test ./...
 
 vet:
 	go vet ./...
+
+lint:
+	golangci-lint run
 
 install: build
 	mkdir -p "$(BINDIR)"

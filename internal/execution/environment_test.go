@@ -32,7 +32,7 @@ func TestDevNullIsNotInteractiveInput(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer file.Close()
+	t.Cleanup(func() { _ = file.Close() })
 	if interactiveInput(file) {
 		t.Fatal("/dev/null was incorrectly treated as interactive input")
 	}

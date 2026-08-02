@@ -1,0 +1,15 @@
+version: "2"
+
+linters:
+  default: standard
+  settings:
+    errcheck:
+      # Terminal output failures cannot be recovered from meaningfully. File,
+      # process, configuration, and network errors must still be checked.
+      exclude-functions:
+        - fmt.Fprint
+        - fmt.Fprintf
+        - fmt.Fprintln
+
+run:
+  timeout: 5m

@@ -24,7 +24,7 @@ func TestRootHelpListsEveryPublicCommand(t *testing.T) {
 		"profile add <name>", "profile list", "profile login <profile> <agent>",
 		"bind <profile>", "unbind", "rules", "use <profile>", "current", "status", "prompt", "install",
 		"uninstall", "doctor", "shell init <shell>", "completion <shell>",
-		"help <command>",
+		"version", "help <command>",
 	} {
 		if !strings.Contains(text, want) {
 			t.Errorf("root help is missing %q\n%s", want, text)
@@ -32,6 +32,26 @@ func TestRootHelpListsEveryPublicCommand(t *testing.T) {
 	}
 	if strings.Contains(text, "internal exec") {
 		t.Fatal("internal command appeared in public help")
+	}
+}
+
+func TestVersionCommandAndFlag(t *testing.T) {
+	previous := Version
+	Version = "0.1.0-test"
+	t.Cleanup(func() { Version = previous })
+
+	for _, args := range [][]string{{"version"}, {"--version"}} {
+		cmd := New()
+		var out bytes.Buffer
+		cmd.SetOut(&out)
+		cmd.SetErr(&out)
+		cmd.SetArgs(args)
+		if err := cmd.Execute(); err != nil {
+			t.Fatalf("%v: %v", args, err)
+		}
+		if got := out.String(); got != "agentwho 0.1.0-test\n" {
+			t.Fatalf("%v output = %q", args, got)
+		}
 	}
 }
 
@@ -92,7 +112,7 @@ func TestDevNullIsNotInteractive(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer file.Close()
+	t.Cleanup(func() { _ = file.Close() })
 	if interactive(file) {
 		t.Fatal("/dev/null was incorrectly treated as an interactive terminal")
 	}

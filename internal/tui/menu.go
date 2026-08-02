@@ -33,8 +33,8 @@ func SelectOne(reader *bufio.Reader, inputFile *os.File, output io.Writer, title
 		return selectNumbered(reader, output, title, options, defaultIndex)
 	}
 
-	fmt.Fprintf(output, "\n%s\n\n", termstyle.Paint(output, termstyle.Accent, title))
-	fmt.Fprintln(output, termstyle.Paint(output, termstyle.Muted, "Use ↑/↓ to move and Enter to select."))
+	_, _ = fmt.Fprintf(output, "\n%s\n\n", termstyle.Paint(output, termstyle.Accent, title))
+	_, _ = fmt.Fprintln(output, termstyle.Paint(output, termstyle.Muted, "Use ↑/↓ to move and Enter to select."))
 
 	fd := int(inputFile.Fd())
 	previous, err := term.MakeRaw(fd)
@@ -50,8 +50,8 @@ func SelectOne(reader *bufio.Reader, inputFile *os.File, output io.Writer, title
 	}
 	defer restore()
 
-	fmt.Fprint(output, "\x1b[?25l")
-	defer fmt.Fprint(output, "\x1b[?25h")
+	_, _ = fmt.Fprint(output, "\x1b[?25l")
+	defer func() { _, _ = fmt.Fprint(output, "\x1b[?25h") }()
 
 	selected := defaultIndex
 	menuLines := renderMenu(output, options, selected, 0)
@@ -59,7 +59,7 @@ func SelectOne(reader *bufio.Reader, inputFile *os.File, output io.Writer, title
 		key, err := readMenuKey(inputFile)
 		if err != nil {
 			restore()
-			fmt.Fprintln(output)
+			_, _ = fmt.Fprintln(output)
 			return "", fmt.Errorf("read selection: %w", err)
 		}
 		switch key {
@@ -71,12 +71,12 @@ func SelectOne(reader *bufio.Reader, inputFile *os.File, output io.Writer, title
 			renderMenu(output, options, selected, menuLines)
 		case menuChoose:
 			restore()
-			fmt.Fprintln(output)
-			fmt.Fprintln(output, termstyle.Paint(output, termstyle.Success, "✓ Selected: "+options[selected].Label))
+			_, _ = fmt.Fprintln(output)
+			_, _ = fmt.Fprintln(output, termstyle.Paint(output, termstyle.Success, "✓ Selected: "+options[selected].Label))
 			return options[selected].Value, nil
 		case menuCancel:
 			restore()
-			fmt.Fprintln(output, termstyle.Paint(output, termstyle.Warning, "\nCancelled."))
+			_, _ = fmt.Fprintln(output, termstyle.Paint(output, termstyle.Warning, "\nCancelled."))
 			return "", ErrCancelled
 		}
 	}
@@ -94,9 +94,9 @@ func selectNumbered(reader *bufio.Reader, output io.Writer, title string, option
 	if reader == nil {
 		return "", errors.New("numbered selection requires an input reader")
 	}
-	fmt.Fprintf(output, "\n%s\n\n", termstyle.Paint(output, termstyle.Accent, title))
+	_, _ = fmt.Fprintf(output, "\n%s\n\n", termstyle.Paint(output, termstyle.Accent, title))
 	for i, option := range options {
-		fmt.Fprintf(output, "  %d. %s\n", i+1, option.Label)
+		_, _ = fmt.Fprintf(output, "  %d. %s\n", i+1, option.Label)
 		if option.Description != "" {
 			fmt.Fprintf(output, "     %s\n", termstyle.Paint(output, termstyle.Muted, option.Description))
 		}
