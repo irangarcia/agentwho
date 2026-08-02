@@ -168,34 +168,44 @@ private func writeGIF(_ images: [CGImage], delays: [Double], to url: URL) {
     guard images.count == delays.count else {
         fatalError("GIF images and delays differ")
     }
-    guard let destination = CGImageDestinationCreateWithURL(
-        url as CFURL,
-        UTType.gif.identifier as CFString,
-        images.count,
-        nil
-    ) else {
-        fatalError("could not create GIF destination")
+
+    let temporaryURL = FileManager.default.temporaryDirectory
+        .appendingPathComponent("agentwho-demo-\(UUID().uuidString)", isDirectory: true)
+    do {
+        try FileManager.default.createDirectory(at: temporaryURL, withIntermediateDirectories: true)
+    } catch {
+        fatalError("could not create GIF frame directory: \(error)")
+    }
+    defer { try? FileManager.default.removeItem(at: temporaryURL) }
+
+    var framePaths: [String] = []
+    for (index, image) in images.enumerated() {
+        let frameURL = temporaryURL.appendingPathComponent("frame-\(index).png")
+        writePNG(image, to: frameURL)
+        framePaths.append(frameURL.path)
     }
 
-    let globalProperties: CFDictionary = [
-        kCGImagePropertyGIFDictionary: [
-            kCGImagePropertyGIFLoopCount: 0,
-        ],
-    ] as CFDictionary
-    CGImageDestinationSetProperties(destination, globalProperties)
-
-    for (image, delay) in zip(images, delays) {
-        let frameProperties: CFDictionary = [
-            kCGImagePropertyGIFDictionary: [
-                kCGImagePropertyGIFDelayTime: delay,
-                kCGImagePropertyGIFUnclampedDelayTime: delay,
-            ],
-        ] as CFDictionary
-        CGImageDestinationAddImage(destination, image, frameProperties)
+    let scriptURL = URL(fileURLWithPath: #filePath)
+    let encoderURL = scriptURL.deletingLastPathComponent().appendingPathComponent("encode_gif.py")
+    let python = ProcessInfo.processInfo.environment["PYTHON"] ?? "python3"
+    let process = Process()
+    process.executableURL = URL(fileURLWithPath: "/usr/bin/env")
+    process.arguments = [
+        python,
+        encoderURL.path,
+        url.path,
+        delays.map { String(Int($0 * 1000)) }.joined(separator: ","),
+    ] + framePaths
+    process.standardOutput = FileHandle.standardOutput
+    process.standardError = FileHandle.standardError
+    do {
+        try process.run()
+        process.waitUntilExit()
+    } catch {
+        fatalError("could not start GIF encoder: \(error)")
     }
-
-    guard CGImageDestinationFinalize(destination) else {
-        fatalError("could not write \(url.path)")
+    guard process.terminationStatus == 0 else {
+        fatalError("GIF encoder failed; install Pillow with `python3 -m pip install Pillow`")
     }
 }
 
@@ -220,9 +230,26 @@ private let statusLines: [TerminalLine] = [
     TerminalLine("✓ Ready", .success, bold: true),
 ]
 
-private let automaticLines = statusLines + [
+private let personalAutomaticLines: [TerminalLine] = [
+    TerminalLine("$ cd ~/code/side-project", .command, bold: true),
+    TerminalLine("$ agentwho current", .command, bold: true),
+    TerminalLine("personal", .success, bold: true),
     TerminalLine(""),
     TerminalLine("$ claude", .command, bold: true),
+    TerminalLine(""),
+    TerminalLine("Claude opens with the personal account.", .muted),
+]
+
+private let workAutomaticLines: [TerminalLine] = [
+    TerminalLine("$ cd ~/work/acme/backend", .command, bold: true),
+    TerminalLine("$ agentwho current", .command, bold: true),
+    TerminalLine("work", .success, bold: true),
+    TerminalLine(""),
+    TerminalLine("$ codex", .command, bold: true),
+    TerminalLine(""),
+    TerminalLine("Codex opens with the work account.", .muted),
+    TerminalLine(""),
+    TerminalLine("✓ No account-switching command needed.", .success, bold: true),
 ]
 
 private let mismatchBase: [TerminalLine] = [
@@ -293,7 +320,8 @@ private let assetsURL = repositoryURL.appendingPathComponent("docs/assets", isDi
 
 try FileManager.default.createDirectory(at: assetsURL, withIntermediateDirectories: true)
 
-let automatic = render(title: "AgentWho — automatic account selection", lines: automaticLines)
+let personalAutomatic = render(title: "AgentWho — automatic account selection", lines: personalAutomaticLines)
+let workAutomatic = render(title: "AgentWho — automatic account selection", lines: workAutomaticLines)
 let status = render(title: "AgentWho — status", lines: statusLines)
 let mismatch = render(title: "AgentWho — profile mismatch", lines: mismatchLines)
 let switched = render(title: "AgentWho — safe switch", lines: switchedLines)
@@ -304,8 +332,8 @@ writePNG(mismatch, to: assetsURL.appendingPathComponent("mismatch.png"))
 writePNG(switched, to: assetsURL.appendingPathComponent("switched.png"))
 writePNG(doctor, to: assetsURL.appendingPathComponent("doctor.png"))
 writeGIF(
-    [automatic, mismatch, switched],
-    delays: [3.2, 4.0, 3.2],
+    [personalAutomatic, workAutomatic, mismatch, switched],
+    delays: [2.4, 4.5, 3.5, 2.8],
     to: assetsURL.appendingPathComponent("agentwho-demo.gif")
 )
 

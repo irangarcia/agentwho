@@ -120,7 +120,7 @@ Agent-specific behavior lives behind a small adapter interface.
 - login arguments: `login`;
 - status arguments: `login status`.
 
-The adapter preserves the existing environment except that it replaces its own configuration variable with exactly one profile directory. It never opens files inside that directory.
+The adapter preserves the existing environment except that it replaces its own configuration variable with exactly one profile directory. That directory isolates the official CLI's complete user-level state—not only authentication—so settings, user-level MCP configuration, plugins or skills, and history do not automatically carry between AgentWho profiles. Repository-level configuration remains available from the working directory. AgentWho never opens files inside the profile directory.
 
 Official status commands run with the same isolated environment and a short timeout. Their exit result is mapped to `authenticated`, `not authenticated`, `unavailable`, or `unknown`; stdout and stderr are discarded.
 

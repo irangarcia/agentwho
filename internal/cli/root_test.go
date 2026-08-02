@@ -74,6 +74,8 @@ func TestInitUsesUserFacingCopyAndChoices(t *testing.T) {
 	text := out.String()
 	for _, want := range []string{
 		"Welcome to AgentWho", "Create a separate work profile", "Which profile should be used",
+		"What profiles separate", "complete user-level agent setup", "User-level settings and MCP setup",
+		"session history do not automatically carry between profiles", "existing Claude and Codex data stays untouched",
 		"How should AgentWho handle a profile mismatch", "Route the `claude` and `codex` terminal commands",
 		"VS Code extension panels are", "Enable terminal integration now? [Y/n]",
 		"Show the active profile beside your command prompt", "AgentWho is ready",

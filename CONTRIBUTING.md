@@ -102,10 +102,13 @@ Avoid unrelated dependency additions. Prefer the Go standard library when practi
 
 ## Documentation assets
 
-Terminal visuals live in `docs/assets`. The checked-in `scripts/generate-demo.swift` script regenerates the current GIF and screenshots on macOS:
+Terminal visuals live in `docs/assets`. The checked-in generator uses Swift for rendering and Python's Pillow package for full-frame GIF encoding on macOS:
 
 ```sh
+python3 -m pip install Pillow
 swift scripts/generate-demo.swift
 ```
+
+Set `PYTHON=/path/to/python3` when Pillow is installed in a virtual environment.
 
 Keep visuals free of real usernames, company names, tokens, and local credential paths.

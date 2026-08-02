@@ -13,6 +13,7 @@ AgentWho is intentionally a focused first release.
 - Claude Code and Codex CLI are supported.
 - Other coding agents are not supported.
 - Graphical Claude and Codex editor panels are not protected; integrated terminal commands can be protected. See [VS Code integration](vscode.md).
+- Profiles isolate each CLI's complete user-level data directory, not only its credentials. User settings, MCP configuration, plugins or skills, and history do not automatically carry between profiles. See [Configuration](configuration.md#agent-environments).
 
 ## Git and bindings
 

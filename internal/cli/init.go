@@ -28,6 +28,12 @@ func (a *app) initCmd() *cobra.Command {
 			fmt.Fprintln(a.out, "separate and selects the right profile for each project.")
 			fmt.Fprintln(a.out, "\nYour credentials remain managed by the official Claude and Codex CLIs.")
 			fmt.Fprint(a.out, "AgentWho never reads or copies them.\n\n")
+			a.initSection("What profiles separate")
+			fmt.Fprintln(a.out, "Each profile has its own sign-in and complete user-level agent setup—not")
+			fmt.Fprintln(a.out, "just a different account. User-level settings and MCP setup, plugins or")
+			fmt.Fprintln(a.out, "skills, and session history do not automatically carry between profiles.")
+			fmt.Fprintln(a.out, "\nYour existing Claude and Codex data stays untouched. AgentWho never copies,")
+			fmt.Fprintln(a.out, "moves, or deletes it.")
 			if _, err := os.Stat(p.Config); err == nil {
 				if !interactive(a.stdinFile) {
 					return fmt.Errorf("AgentWho is already configured at %s\n\nRun this command in an interactive terminal to replace it", p.Config)

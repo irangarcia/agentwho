@@ -254,14 +254,18 @@ After enforcement, AgentWho removes `AGENTWHO_FORCE` from the agent process and 
 
 ## Agent environments
 
-AgentWho preserves the current environment and replaces only the supported agent's account directory:
+AgentWho preserves the current environment and replaces only the supported agent's user-level data directory:
 
 | Agent | Environment variable | Profile path |
 | --- | --- | --- |
 | Claude Code | `CLAUDE_CONFIG_DIR` | `profiles/<profile>/claude` |
 | Codex CLI | `CODEX_HOME` | `profiles/<profile>/codex` |
 
-An inherited value for the same agent variable is removed before the selected profile path is added. AgentWho never reads files in those directories.
+These directories contain more than credentials. Depending on the official CLI, they include user-level settings, MCP configuration, plugins or skills, session history, logs, caches, and other state. A new AgentWho profile therefore does not inherit the user-level setup of another profile.
+
+Repository files and repository-level agent configuration remain shared because AgentWho launches the official CLI in the current working directory. Existing data in the CLIs' normal directories remains untouched. AgentWho does not read, copy, migrate, merge, or delete any of this state; it only selects the directory the official CLI uses.
+
+An inherited value for the same agent variable is removed before the selected profile path is added. For the official definitions of these directories, see [Claude Code's `CLAUDE_CONFIG_DIR` documentation](https://code.claude.com/docs/en/env-vars) and [Codex's `CODEX_HOME` documentation](https://learn.chatgpt.com/docs/config-file/environment-variables).
 
 ## Stable JSON interfaces
 

@@ -22,36 +22,22 @@ agentwho init
 ```
 
 ```console
+$ cd ~/code/side-project
+$ agentwho current
+personal
+
+$ claude
+
 $ cd ~/work/acme/backend
 $ agentwho current
 work
 
-$ claude
-# Claude starts with the work account automatically.
-
-$ agentwho use personal
-✓ Using profile "personal" in this shell.
-⚠ This directory expects profile "work". Safety mode "confirm" will apply.
-
 $ codex
-Codex profile mismatch
-
-Repository:        github.com/acme/backend
-Expected profile:  work
-Current profile:   personal
-
-Risk:
-Company source code could be sent through your personal account.
-
-What would you like to do?
-❯ Switch to profile "work" (recommended)
-  Continue with profile "personal"
-  Cancel
-
-Using profile "work" for this command.
 ```
 
-You keep running the original `claude` and `codex` commands. Credentials remain fully managed by the official Claude and Codex CLIs—AgentWho never reads, copies, migrates, or displays them.
+`agentwho current` is shown only to make the automatic selection visible. In daily use, you change directories and run the original `claude` or `codex` command—there is no account-switching step to remember.
+
+Credentials remain fully managed by the official Claude and Codex CLIs. AgentWho never reads, copies, migrates, or displays them.
 
 ## Why AgentWho?
 
@@ -74,6 +60,16 @@ AgentWho:
 4. launches the official Claude or Codex CLI with that profile's isolated account state.
 
 The real Claude and Codex executables are never replaced. See [Architecture](docs/architecture.md) for shim installation, executable discovery, recursion prevention, environment isolation, and process behavior.
+
+## What is shared—and what is separate
+
+An AgentWho profile separates each CLI's complete **user-level state**, not only its sign-in.
+
+- **Separate for each profile:** credentials, user settings, user-level MCP configuration, plugins or skills, session history, logs, and caches.
+- **Still shared:** the current repository and agent configuration stored inside that repository.
+- **Left untouched:** existing Claude and Codex data outside AgentWho's profile directories.
+
+A new profile therefore starts without the user-level customizations from another profile. Sign in and configure the plugins, skills, MCP servers, and settings that identity needs. AgentWho never copies or deletes existing agent data; it only tells the official CLI which profile directory to use. See [Configuration](docs/configuration.md#agent-environments) for details.
 
 ## Installation
 
@@ -165,18 +161,29 @@ Sign in independently for every profile and agent you use. `profile list` obtain
 
 ## Bind projects to accounts
 
-### One repository
+The easiest approach is the interactive picker:
 
 ```sh
 cd ~/work/acme/backend
-agentwho bind work --repo --safety-mode block
+agentwho bind work
 ```
+
+AgentWho asks whether the profile should apply to this repository, its organization, or the current directory tree. It also asks for a safety mode, with your configured default preselected.
+
+For a direct, non-interactive binding, choose the scope with a flag.
+
+### This exact repository
+
+```sh
+agentwho bind work --repo
+```
+
+`--repo` binds the normalized `origin` remote of the current Git repository, such as `github.com/acme/backend`. It follows that repository across local clones and paths. If there is no usable `origin`, use a directory binding instead.
 
 ### Every repository in an organization
 
 ```sh
-cd ~/work/acme/backend
-agentwho bind work --organization --safety-mode block
+agentwho bind work --organization
 ```
 
 For `git@github.com:acme/backend.git`, this applies to every repository in `github.com/acme`.
@@ -184,14 +191,13 @@ For `git@github.com:acme/backend.git`, this applies to every repository in `gith
 ### A directory and everything below it
 
 ```sh
-agentwho bind personal --path ~/projects/personal --safety-mode confirm
+agentwho bind personal --path ~/projects/personal
 ```
 
-Or use the interactive scope picker:
+Bindings use your default safety mode unless you override it:
 
 ```sh
-cd ~/work/acme/backend
-agentwho bind work
+agentwho bind work --repo --safety-mode block
 ```
 
 A binding changes the account AgentWho automatically expects in that context. It does not manually switch every other terminal or project.
