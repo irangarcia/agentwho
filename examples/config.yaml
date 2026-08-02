@@ -1,0 +1,22 @@
+version: 1
+defaults:
+  profile: personal
+  enforcement: confirm
+profiles:
+  personal:
+    kind: personal
+  work:
+    kind: work
+rules:
+  - match:
+      git_remote: github.com/acme/backend
+    profile: work
+    enforcement: block
+  - match:
+      git_organization: github.com/acme
+    profile: work
+    enforcement: block
+  - match:
+      path: ~/code/personal
+    profile: personal
+    enforcement: confirm
