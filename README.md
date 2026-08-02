@@ -4,6 +4,8 @@
 
 **You never have to remember to switch AI accounts again.**
 
+AgentWho is an independent open-source project and is not affiliated with Anthropic or OpenAI.
+
 ![AgentWho terminal demo showing automatic selection and mismatch protection](docs/assets/agentwho-demo.gif)
 
 [![CI](https://github.com/irangarcia/agentwho/actions/workflows/ci.yml/badge.svg)](https://github.com/irangarcia/agentwho/actions/workflows/ci.yml)
@@ -334,6 +336,8 @@ agentwho uninstall --purge
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, tests, package layout, and pull-request guidance.
+
+Security vulnerabilities should be reported privately by following [SECURITY.md](SECURITY.md). Never include credentials, tokens, or private source code in a report.
 
 ## License
 
