@@ -4,11 +4,20 @@
 
 **You never have to remember to switch AI accounts again.**
 
+![AgentWho terminal demo showing automatic selection and mismatch protection](docs/assets/agentwho-demo.gif)
+
 [![CI](https://github.com/irangarcia/agentwho/actions/workflows/ci.yml/badge.svg)](https://github.com/irangarcia/agentwho/actions/workflows/ci.yml)
 [![golangci-lint](https://github.com/irangarcia/agentwho/actions/workflows/lint.yml/badge.svg)](https://github.com/irangarcia/agentwho/actions/workflows/lint.yml)
 [![Latest Release](https://img.shields.io/github/v/release/irangarcia/agentwho?display_name=tag&sort=semver)](https://github.com/irangarcia/agentwho/releases/latest)
 [![License](https://img.shields.io/github/license/irangarcia/agentwho)](LICENSE)
 [![Homebrew](https://img.shields.io/badge/Homebrew-irangarcia%2Ftap-fbb040?logo=homebrew)](https://github.com/irangarcia/homebrew-tap)
+
+Install with Homebrew:
+
+```sh
+brew install irangarcia/tap/agentwho
+agentwho init
+```
 
 ```console
 $ cd ~/work/acme/backend
@@ -39,8 +48,6 @@ What would you like to do?
 
 Using profile "work" for this command.
 ```
-
-![AgentWho terminal demo showing automatic selection and mismatch protection](docs/assets/agentwho-demo.gif)
 
 You keep running the original `claude` and `codex` commands. Credentials remain fully managed by the official Claude and Codex CLIs—AgentWho never reads, copies, migrates, or displays them.
 
