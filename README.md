@@ -53,7 +53,7 @@ You keep running the original `claude` and `codex` commands. Credentials remain 
 
 ## Why AgentWho?
 
-Claude Code and Codex CLI each keep a signed-in account on your computer. If you work across personal, company, and client projects, it is easy to open the right repository with the wrong account.
+Claude Code and Codex CLI each keep a signed-in account on your computer. If you work across personal and company projects, it is easy to open the right repository with the wrong account.
 
 That mistake works both ways:
 
@@ -67,7 +67,7 @@ Remembering to switch manually is unreliable. AgentWho binds an account identity
 AgentWho:
 
 1. identifies the current repository or directory;
-2. resolves whether it expects your personal, work, or client profile;
+2. resolves which personal or work profile the project expects;
 3. protects against conflicting explicit selections;
 4. launches the official Claude or Codex CLI with that profile's isolated account state.
 
