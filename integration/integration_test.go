@@ -95,14 +95,21 @@ func TestTransparentShimFlow(t *testing.T) {
 	if !strings.Contains(string(overrideOutput), "current profile is still \"work\"") || !strings.Contains(string(overrideOutput), "agentwho use --auto") {
 		t.Fatalf("bind success did not explain the active override:\n%s", overrideOutput)
 	}
-	run(t, repo, env, bin, "install", "--shell", "zsh")
+	shellName := "zsh"
+	if _, lookupErr := exec.LookPath(shellName); lookupErr != nil {
+		shellName = "bash"
+	}
+	run(t, repo, env, bin, "install", "--shell", shellName)
 
 	shellEnv := append(append([]string(nil), env...), "PATH="+temp+string(os.PathListSeparator)+realBin+string(os.PathListSeparator)+basePath)
-	shellSelection := exec.Command("zsh", "-c", `eval "$(agentwho shell init zsh)"
-agentwho use personal
-agentwho current
-agentwho use --auto
-agentwho current`)
+	shellScript := strings.Join([]string{
+		`eval "$(agentwho shell init ` + shellName + `)"`,
+		"agentwho use personal",
+		"agentwho current",
+		"agentwho use --auto",
+		"agentwho current",
+	}, "\n")
+	shellSelection := exec.Command(shellName, "-c", shellScript)
 	shellSelection.Dir = repo
 	shellSelection.Env = append(os.Environ(), shellEnv...)
 	shellOutput, err := shellSelection.CombinedOutput()
