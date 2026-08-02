@@ -135,7 +135,7 @@ Using arrow-key menus, AgentWho will:
 4. offer to protect the normal `claude` and `codex` commands;
 5. show optional terminal prompt instructions.
 
-No shell file is changed without confirmation. If you skip terminal integration, enable it later:
+If you enable terminal integration, AgentWho offers to update your shell file and creates a backup first. If you decline, it prints the manual setup line instead. If you skip terminal integration, no shell setup is needed or shown. Enable it later with:
 
 ```sh
 agentwho install --modify-shell

@@ -102,16 +102,34 @@ func (a *app) initCmd() *cobra.Command {
 			}
 			home, _ := os.UserHomeDir()
 			configFile := shell.DefaultConfig(shellName, home)
-			shellConfigured, err := shell.IsConfigured(configFile, shellName)
-			if err != nil {
-				return fmt.Errorf("check shell integration in %s: %w", configFile, err)
-			}
-			if shellConfigured {
-				fmt.Fprintf(a.out, "\n%s Shell integration is already configured in %s.\n", a.success("✓"), configFile)
-			} else {
-				a.initSection("Shell setup")
-				fmt.Fprintf(a.out, "\nAdd this line to %s:\n\n  %s\n", configFile, shell.EvalLine(shellName))
-				fmt.Fprintf(a.out, "\nThen restart your terminal or run it now:\n\n  %s\n", shell.EvalLine(shellName))
+			if shimsEnabled {
+				shellConfigured, err := shell.IsConfigured(configFile, shellName)
+				if err != nil {
+					return fmt.Errorf("check shell integration in %s: %w", configFile, err)
+				}
+				if shellConfigured {
+					fmt.Fprintf(a.out, "\n%s Shell integration is already configured in %s.\n", a.success("✓"), configFile)
+				} else {
+					a.initSection("Shell setup")
+					fmt.Fprintf(a.out, "AgentWho can update %s so new terminals use the protected commands.\n", configFile)
+					fmt.Fprintln(a.out, "A backup will be created first if the file already exists.")
+					if askYesDefault(reader, a.out, "Update "+configFile+" now?") {
+						backup, changed, err := shell.AddBlock(configFile, shellName)
+						if err != nil {
+							return fmt.Errorf("update shell configuration %s: %w", configFile, err)
+						}
+						if changed {
+							fmt.Fprintf(a.out, "%s Updated %s.\n", a.success("✓"), configFile)
+							if backup != "" {
+								fmt.Fprintf(a.out, "  Backup: %s\n", backup)
+							}
+							fmt.Fprintln(a.out, "  Open a new terminal to activate AgentWho.")
+						}
+					} else {
+						fmt.Fprintln(a.out, "No shell files were changed.")
+						printShellInstructions(a.out, configFile, shellName)
+					}
+				}
 			}
 			a.initSection("Prompt indicator")
 			if askYes(reader, a.out, "Show the active profile beside your command prompt (for example, [agent:work])?") {
