@@ -223,8 +223,8 @@ func (a *app) chooseSafetyMode(fallback string) (string, error) {
 
 func safetyModeOptions() []menuOption {
 	return []menuOption{
-		{Label: "Block", Description: "Never start the agent with the wrong profile.", Value: "block"},
-		{Label: "Confirm", Description: "Show a warning and ask before continuing.", Value: "confirm"},
+		{Label: "Block", Description: "Do not start Claude or Codex until the expected profile is used.", Value: "block"},
+		{Label: "Confirm", Description: "Explain the mismatch and let you switch, continue once, or cancel.", Value: "confirm"},
 	}
 }
 

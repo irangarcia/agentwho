@@ -50,6 +50,8 @@ That mistake works both ways:
 
 Remembering to switch manually is unreliable. AgentWho binds an account identity to a repository, organization, or directory tree and applies it automatically whenever you run Claude or Codex there.
 
+AgentWho calls each isolated account setup a **profile**. A profile groups the Claude and Codex accounts—and their user-level state—for one identity such as `personal` or `work`. In the CLI and documentation, *profile* means this complete setup; *account* means the actual Claude or Codex sign-in.
+
 ## How it works
 
 AgentWho:
@@ -63,7 +65,7 @@ The real Claude and Codex executables are never replaced. See [Architecture](doc
 
 ## What is shared—and what is separate
 
-An AgentWho profile separates each CLI's complete **user-level state**, not only its sign-in.
+Because an AgentWho profile is a complete account setup, it separates each CLI's full **user-level state**, not only its sign-in.
 
 - **Separate for each profile:** credentials, user settings, user-level MCP configuration, plugins or skills, session history, logs, and caches.
 - **Still shared:** the current repository and agent configuration stored inside that repository.
@@ -125,13 +127,15 @@ agentwho init
 
 Using arrow-key menus, AgentWho will:
 
-1. create a `personal` profile;
-2. optionally create a `work` profile;
-3. choose the default account and safety mode;
-4. offer to protect the normal `claude` and `codex` commands;
-5. show optional terminal prompt instructions.
+1. create `personal` and `work` profiles;
+2. ask which profile should be the default;
+3. explain profile mismatches and let you choose `block` or `confirm`;
+4. protect the normal `claude` and `codex` commands automatically;
+5. offer backed-up shell setup and optional prompt instructions.
 
-If you enable terminal integration, AgentWho offers to update your shell file and creates a backup first. If you decline, it prints the manual setup line instead. If you skip terminal integration, no shell setup is needed or shown. Enable it later with:
+Terminal command protection is installed automatically because transparent routing is AgentWho’s core feature. If your shell still needs setup, AgentWho asks before updating the shell file and creates a backup first. If you decline the file change, it prints the exact manual setup line instead.
+
+You can repair or reinstall terminal routing later with:
 
 ```sh
 agentwho install --modify-shell
@@ -144,22 +148,23 @@ agentwho doctor
 agentwho status
 ```
 
-## Create and sign in to accounts
+## Sign in to your profiles
 
-Each profile represents one isolated Claude and Codex identity:
+Onboarding creates both `personal` and `work`. Sign in to the Claude and Codex accounts for each profile you use:
 
 ```sh
-agentwho profile add work --kind work
+agentwho profile login personal claude
+agentwho profile login personal codex
 agentwho profile login work claude
 agentwho profile login work codex
 agentwho profile list
 ```
 
-If onboarding already created `work`, skip the `profile add` command.
-
 Sign in independently for every profile and agent you use. `profile list` obtains sign-in status only by asking the official CLIs; one missing or signed-out agent does not break the list.
 
-## Bind projects to accounts
+You can create additional named profiles later with `agentwho profile add <name> --kind personal|work`.
+
+## Bind projects to profiles
 
 The easiest approach is the interactive picker:
 
@@ -200,7 +205,7 @@ Bindings use your default safety mode unless you override it:
 agentwho bind work --repo --safety-mode block
 ```
 
-A binding changes the account AgentWho automatically expects in that context. It does not manually switch every other terminal or project.
+A binding changes the profile AgentWho automatically expects in that context. It does not manually switch every other terminal or project.
 
 Resolution is deterministic: exact repository, organization, longest directory match, then default. See [Configuration](docs/configuration.md) for normalization, precedence, and the complete schema.
 
@@ -208,16 +213,16 @@ Resolution is deterministic: exact repository, organization, longest directory m
 
 Bindings can use either safety mode:
 
-- **block** — never launch Claude or Codex when the current account conflicts with the expected account;
-- **confirm** — explain the risk and offer to use the expected account, continue once, or cancel.
+- **block** — never launch Claude or Codex when the current profile conflicts with the expected profile;
+- **confirm** — explain the account risk and offer to use the expected profile, continue once, or cancel.
 
-Confirmation defaults to the expected account. Non-interactive confirmation refuses execution.
+Confirmation defaults to the expected profile. Non-interactive confirmation refuses execution.
 
 ![AgentWho profile mismatch prompt](docs/assets/mismatch.png)
 
-### Choose an account for this shell
+### Choose a profile for this shell
 
-Most of the time, bindings should choose automatically. When you intentionally want another account in the current shell:
+Most of the time, bindings should choose automatically. When you intentionally want another profile in the current shell:
 
 ```sh
 agentwho use personal
@@ -231,14 +236,14 @@ agentwho use --auto
 
 Shell selections still go through mismatch protection. `AGENTWHO_FORCE=1` exists only as a visible emergency bypass and requires additional confirmation; see [Configuration](docs/configuration.md#explicit-selection-and-bypass).
 
-## Check the current account
+## Check the current profile
 
 ```sh
 agentwho status
 agentwho current
 ```
 
-`status` explains the current directory, matched binding, expected account, current account, safety mode, and command integration. `current` is the stable minimal interface for scripts and prints only the account profile name.
+`status` explains the current directory, matched binding, expected profile, current profile, safety mode, and command integration. `current` is the stable minimal interface for scripts and prints only the profile name.
 
 ![AgentWho status output](docs/assets/status.png)
 
@@ -261,7 +266,7 @@ agentwho prompt
 # [agent:work]
 ```
 
-A conflicting explicit account prints `[agent:personal!]`.
+A conflicting explicit profile prints `[agent:personal!]`.
 
 ```sh
 # zsh

@@ -66,21 +66,22 @@ func TestInitUsesUserFacingCopyAndChoices(t *testing.T) {
 	t.Setenv("SHELL", "/bin/zsh")
 
 	var out bytes.Buffer
-	a := &app{in: strings.NewReader("y\n2\n1\nn\nn\n"), out: &out, errout: &out}
+	a := &app{in: strings.NewReader("2\n1\nn\nn\n"), out: &out, errout: &out}
 	cmd := a.initCmd()
 	if err := cmd.Execute(); err != nil {
 		t.Fatal(err)
 	}
 	text := out.String()
 	for _, want := range []string{
-		"Welcome to AgentWho", "Create a separate work profile", "Which profile should be used",
-		"What profiles separate", "complete user-level agent setup", "User-level settings and MCP setup",
-		"session history do not automatically carry between profiles", "existing Claude and Codex data stays untouched",
-		"How should AgentWho handle a profile mismatch", "Route the `claude` and `codex` terminal commands",
-		"VS Code extension panels are", "Enable terminal integration now? [Y/n]",
+		"Welcome to AgentWho", "How account separation works", "calls each isolated account setup a profile",
+		"two profiles: personal and work", "Which profile should AgentWho use by default?",
+		"Use your personal Claude and Codex accounts", "folders you have not assigned to personal",
+		"A mismatch happens when a project expects one profile", "work project expects",
+		"What should AgentWho do when profiles do not match?", "send work code through a personal account",
+		"existing Claude and Codex data stays untouched", "Automatic profile selection enabled for Claude and Codex",
 		"Show the active profile beside your command prompt", "AgentWho is ready",
 		"Default profile: work", "Default safety mode: block",
-		"Safety mode\n", "Terminal integration\n", "Prompt indicator\n", "Setup complete\n",
+		"Default profile\n", "Mismatch protection\n", "Shell setup\n", "Prompt indicator\n", "Setup complete\n",
 	} {
 		if !strings.Contains(text, want) {
 			t.Errorf("onboarding output is missing %q\n%s", want, text)
@@ -96,11 +97,15 @@ func TestInitUsesUserFacingCopyAndChoices(t *testing.T) {
 	if _, ok := c.Profiles["work"]; !ok {
 		t.Fatal("work profile was not created")
 	}
-	if _, err := os.Stat(filepath.Join(dataHome, "agentwho", "bin", "claude")); !os.IsNotExist(err) {
-		t.Fatal("declined automatic selection unexpectedly installed a Claude command")
+	for _, agentName := range []string{"claude", "codex"} {
+		if _, err := os.Stat(filepath.Join(dataHome, "agentwho", "bin", agentName)); err != nil {
+			t.Errorf("automatic %s routing was not installed: %v", agentName, err)
+		}
 	}
-	if strings.Contains(text, "Shell setup") || strings.Contains(text, "Add this line") {
-		t.Fatalf("declining terminal integration showed unnecessary shell setup:\n%s", text)
+	for _, removed := range []string{"Create a separate work profile", "Enable terminal integration now?", "Route the `claude` and `codex` terminal commands through AgentWho?", "Terminal integration\n"} {
+		if strings.Contains(text, removed) {
+			t.Errorf("onboarding still contains removed step %q:\n%s", removed, text)
+		}
 	}
 }
 
@@ -118,7 +123,7 @@ func TestInitOffersBackedUpShellUpdateWhenProtectionEnabled(t *testing.T) {
 	}
 
 	var out bytes.Buffer
-	a := &app{in: strings.NewReader("n\n1\ny\ny\nn\n"), out: &out, errout: &out}
+	a := &app{in: strings.NewReader("1\n1\ny\nn\n"), out: &out, errout: &out}
 	if err := a.initCmd().Execute(); err != nil {
 		t.Fatal(err)
 	}
@@ -154,7 +159,7 @@ func TestInitShowsManualShellSetupOnlyWhenAutomaticUpdateIsDeclined(t *testing.T
 	t.Setenv("SHELL", "/bin/zsh")
 
 	var out bytes.Buffer
-	a := &app{in: strings.NewReader("n\n1\ny\nn\nn\n"), out: &out, errout: &out}
+	a := &app{in: strings.NewReader("1\n1\nn\nn\n"), out: &out, errout: &out}
 	if err := a.initCmd().Execute(); err != nil {
 		t.Fatal(err)
 	}

@@ -15,7 +15,7 @@ func (a *app) initCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:     "init",
 		Short:   "Set up AgentWho",
-		Long:    "Set up profiles, mismatch safety, automatic profile selection, and shell integration.",
+		Long:    "Set up personal and work profiles, mismatch safety, automatic profile selection, and shell integration.",
 		Example: "  agentwho init",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			p, err := getPaths()
@@ -28,10 +28,12 @@ func (a *app) initCmd() *cobra.Command {
 			fmt.Fprintln(a.out, "separate and selects the right profile for each project.")
 			fmt.Fprintln(a.out, "\nYour credentials remain managed by the official Claude and Codex CLIs.")
 			fmt.Fprint(a.out, "AgentWho never reads or copies them.\n\n")
-			a.initSection("What profiles separate")
-			fmt.Fprintln(a.out, "Each profile has its own sign-in and complete user-level agent setup—not")
-			fmt.Fprintln(a.out, "just a different account. User-level settings and MCP setup, plugins or")
-			fmt.Fprintln(a.out, "skills, and session history do not automatically carry between profiles.")
+			a.initSection("How account separation works")
+			fmt.Fprintln(a.out, "AgentWho calls each isolated account setup a profile. Onboarding creates")
+			fmt.Fprintln(a.out, "two profiles: personal and work.")
+			fmt.Fprintln(a.out, "\nA profile groups the Claude and Codex accounts for one identity. It also")
+			fmt.Fprintln(a.out, "has its own user-level settings and MCP setup, plugins or skills, and")
+			fmt.Fprintln(a.out, "session history. Those do not automatically carry between profiles.")
 			fmt.Fprintln(a.out, "\nYour existing Claude and Codex data stays untouched. AgentWho never copies,")
 			fmt.Fprintln(a.out, "moves, or deletes it.")
 			if _, err := os.Stat(p.Config); err == nil {
@@ -51,26 +53,25 @@ func (a *app) initCmd() *cobra.Command {
 				return err
 			}
 			c := config.Default()
-			a.initSection("Profiles")
-			fmt.Fprintln(a.out, a.success("✓ Created profile \"personal\"."))
-			fmt.Fprintln(a.out)
-			work := askYes(reader, a.out, "Create a separate work profile now?")
-			if work {
-				c.Profiles["work"] = config.Profile{Kind: "work"}
-				fmt.Fprintln(a.out, a.success("✓ Created profile \"work\"."))
+			c.Profiles["work"] = config.Profile{Kind: "work"}
+			a.initSection("Default profile")
+			fmt.Fprintln(a.out, "AgentWho uses this profile in folders you have not assigned to personal")
+			fmt.Fprintln(a.out, "or work.")
+			value, err := a.selectOne(reader, "Which profile should AgentWho use by default?", []menuOption{
+				{Label: "Personal", Description: "Use your personal Claude and Codex accounts.", Value: "personal"},
+				{Label: "Work", Description: "Use your work Claude and Codex accounts.", Value: "work"},
+			}, 0)
+			if err != nil {
+				return err
 			}
-			if work {
-				value, err := a.selectOne(reader, "Which profile should be used when no binding matches?", []menuOption{
-					{Label: "personal", Value: "personal"},
-					{Label: "work", Value: "work"},
-				}, 0)
-				if err != nil {
-					return err
-				}
-				c.Defaults.Profile = value
-			}
-			a.initSection("Safety mode")
-			safetyMode, err := a.selectOne(reader, "How should AgentWho handle a profile mismatch?", safetyModeOptions(), 1)
+			c.Defaults.Profile = value
+			a.initSection("Mismatch protection")
+			fmt.Fprintln(a.out, "A mismatch happens when a project expects one profile but your current")
+			fmt.Fprintln(a.out, "shell is explicitly using another. For example, a work project expects")
+			fmt.Fprintln(a.out, "\"work\", but the shell is using \"personal\".")
+			fmt.Fprintln(a.out, "\nThat could send work code through a personal account—or personal code")
+			fmt.Fprintln(a.out, "through a company-managed account.")
+			safetyMode, err := a.selectOne(reader, "What should AgentWho do when profiles do not match?", safetyModeOptions(), 1)
 			if err != nil {
 				return err
 			}
@@ -83,58 +84,45 @@ func (a *app) initCmd() *cobra.Command {
 			if err := config.Save(p.Config, c); err != nil {
 				return err
 			}
-			shimsEnabled := false
-			a.initSection("Terminal integration")
-			fmt.Fprint(a.out, "Route the `claude` and `codex` terminal commands through AgentWho?\n\n")
-			fmt.Fprintln(a.out, "When enabled, you keep using `claude` and `codex` normally.")
-			fmt.Fprintln(a.out, "AgentWho selects the expected profile for the current directory and")
-			fmt.Fprint(a.out, "blocks or confirms profile mismatches.\n\n")
-			fmt.Fprintln(a.out, "This protects terminal commands only. VS Code extension panels are")
-			fmt.Fprint(a.out, "not currently protected.\n\n")
-			if askYesDefault(reader, a.out, "Enable terminal integration now?") {
-				exe, err := os.Executable()
-				if err != nil {
-					return err
-				}
-				if err := shim.Install(p.BinDir, exe, []string{"claude", "codex"}); err != nil {
-					return err
-				}
-				shimsEnabled = true
-				fmt.Fprintln(a.out, a.success("✓ Automatic profile selection enabled for Claude and Codex."))
+			exe, err := os.Executable()
+			if err != nil {
+				return err
 			}
+			if err := shim.Install(p.BinDir, exe, []string{"claude", "codex"}); err != nil {
+				return err
+			}
+			fmt.Fprintln(a.out, "\n"+a.success("✓ Automatic profile selection enabled for Claude and Codex."))
 			shellName := shell.Detect(os.Getenv("SHELL"))
 			if shellName != "zsh" && shellName != "bash" && shellName != "fish" {
 				shellName = "zsh"
 			}
 			home, _ := os.UserHomeDir()
 			configFile := shell.DefaultConfig(shellName, home)
-			if shimsEnabled {
-				shellConfigured, err := shell.IsConfigured(configFile, shellName)
-				if err != nil {
-					return fmt.Errorf("check shell integration in %s: %w", configFile, err)
-				}
-				if shellConfigured {
-					fmt.Fprintf(a.out, "\n%s Shell integration is already configured in %s.\n", a.success("✓"), configFile)
-				} else {
-					a.initSection("Shell setup")
-					fmt.Fprintf(a.out, "AgentWho can update %s so new terminals use the protected commands.\n", configFile)
-					fmt.Fprintln(a.out, "A backup will be created first if the file already exists.")
-					if askYesDefault(reader, a.out, "Update "+configFile+" now?") {
-						backup, changed, err := shell.AddBlock(configFile, shellName)
-						if err != nil {
-							return fmt.Errorf("update shell configuration %s: %w", configFile, err)
-						}
-						if changed {
-							fmt.Fprintf(a.out, "%s Updated %s.\n", a.success("✓"), configFile)
-							if backup != "" {
-								fmt.Fprintf(a.out, "  Backup: %s\n", backup)
-							}
-							fmt.Fprintln(a.out, "  Open a new terminal to activate AgentWho.")
-						}
-					} else {
-						fmt.Fprintln(a.out, "No shell files were changed.")
-						printShellInstructions(a.out, configFile, shellName)
+			shellConfigured, err := shell.IsConfigured(configFile, shellName)
+			if err != nil {
+				return fmt.Errorf("check shell integration in %s: %w", configFile, err)
+			}
+			if shellConfigured {
+				fmt.Fprintf(a.out, "\n%s Shell integration is already configured in %s.\n", a.success("✓"), configFile)
+			} else {
+				a.initSection("Shell setup")
+				fmt.Fprintf(a.out, "AgentWho can update %s so new terminals use the protected commands.\n", configFile)
+				fmt.Fprintln(a.out, "A backup will be created first if the file already exists.")
+				if askYesDefault(reader, a.out, "Update "+configFile+" now?") {
+					backup, changed, err := shell.AddBlock(configFile, shellName)
+					if err != nil {
+						return fmt.Errorf("update shell configuration %s: %w", configFile, err)
 					}
+					if changed {
+						fmt.Fprintf(a.out, "%s Updated %s.\n", a.success("✓"), configFile)
+						if backup != "" {
+							fmt.Fprintf(a.out, "  Backup: %s\n", backup)
+						}
+						fmt.Fprintln(a.out, "  Open a new terminal to activate AgentWho.")
+					}
+				} else {
+					fmt.Fprintln(a.out, "No shell files were changed.")
+					printShellInstructions(a.out, configFile, shellName)
 				}
 			}
 			a.initSection("Prompt indicator")
@@ -150,23 +138,14 @@ func (a *app) initCmd() *cobra.Command {
 			fmt.Fprintln(a.out)
 			fmt.Fprintln(a.out, "Profiles:")
 			fmt.Fprintln(a.out, "  personal")
-			if work {
-				fmt.Fprintln(a.out, "  work")
-			}
+			fmt.Fprintln(a.out, "  work")
 			fmt.Fprintf(a.out, "\nDefault profile: %s\nDefault safety mode: %s\n", c.Defaults.Profile, c.Defaults.Enforcement)
-			if shimsEnabled {
-				fmt.Fprintln(a.out, "Automatic profile selection: enabled")
-			} else {
-				fmt.Fprintln(a.out, "Automatic profile selection: not enabled")
-				fmt.Fprintln(a.out, "Enable it later with: agentwho install")
-			}
+			fmt.Fprintln(a.out, "Automatic profile selection: enabled")
 			fmt.Fprintln(a.out, "\nNext steps:")
 			fmt.Fprintln(a.out, "  agentwho profile login personal claude")
 			fmt.Fprintln(a.out, "  agentwho profile login personal codex")
-			if work {
-				fmt.Fprintln(a.out, "  agentwho profile login work claude")
-				fmt.Fprintln(a.out, "  agentwho profile login work codex")
-			}
+			fmt.Fprintln(a.out, "  agentwho profile login work claude")
+			fmt.Fprintln(a.out, "  agentwho profile login work codex")
 			fmt.Fprintln(a.out, "\nRun `agentwho status` at any time to see which profile applies.")
 			return nil
 		},
