@@ -55,8 +55,8 @@ func (a *app) doctorCmd() *cobra.Command {
 					}
 				}
 			}
-			pathParts := filepath.SplitList(os.Getenv("PATH"))
-			shimIndex := indexCanonical(pathParts, p.BinDir)
+			claudeActive := execution.IsActive("claude", p.BinDir, os.Getenv("PATH"))
+			codexActive := execution.IsActive("codex", p.BinDir, os.Getenv("PATH"))
 			for _, ag := range agent.All() {
 				shimPath := filepath.Join(p.BinDir, ag.Name())
 				if target, err := os.Readlink(shimPath); err == nil {
@@ -97,7 +97,8 @@ func (a *app) doctorCmd() *cobra.Command {
 					}
 				}
 			}
-			checks = append(checks, check{"Automatic profile selection", shimIndex == 0, true, choose(shimIndex == 0, "AgentWho comes before the official CLIs in PATH", "AgentWho does not come first in PATH"), "Run `eval \"$(agentwho shell init " + detectedShell() + ")\"` and add it to your shell configuration."})
+			commandsActive := claudeActive && codexActive
+			checks = append(checks, check{"Automatic profile selection", commandsActive, true, choose(commandsActive, "AgentWho commands are active in PATH", "AgentWho commands are not active in PATH"), "Run `eval \"$(agentwho shell init " + detectedShell() + ")\"` and add it to your shell configuration."})
 			shellName := detectedShell()
 			checks = append(checks, check{"Shell", shellName == "zsh" || shellName == "bash" || shellName == "fish", false, "Shell: " + shellName, "Use zsh, bash, or fish."})
 			home, _ := os.UserHomeDir()
@@ -195,23 +196,6 @@ func detectedShell() string {
 		return "zsh"
 	}
 	return value
-}
-
-func indexCanonical(values []string, target string) int {
-	target, _ = filepath.Abs(target)
-	if v, err := filepath.EvalSymlinks(target); err == nil {
-		target = v
-	}
-	for i, value := range values {
-		abs, _ := filepath.Abs(value)
-		if v, err := filepath.EvalSymlinks(abs); err == nil {
-			abs = v
-		}
-		if abs == target {
-			return i
-		}
-	}
-	return -1
 }
 
 func sameFile(a, b string) bool {

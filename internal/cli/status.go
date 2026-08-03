@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 
 	"github.com/irangarcia/agentwho/internal/config"
+	"github.com/irangarcia/agentwho/internal/execution"
 	"github.com/irangarcia/agentwho/internal/gitctx"
 	"github.com/irangarcia/agentwho/internal/resolve"
 	"github.com/irangarcia/agentwho/internal/shim"
@@ -28,6 +29,8 @@ type statusOutput struct {
 	ClaudeShim      bool   `json:"claude_shim_installed"`
 	CodexShim       bool   `json:"codex_shim_installed"`
 	AutomaticActive bool   `json:"automatic_selection_active"`
+	ClaudeActive    bool   `json:"-"`
+	CodexActive     bool   `json:"-"`
 	Mismatch        bool   `json:"mismatch"`
 	Status          string `json:"status"`
 }
@@ -63,12 +66,15 @@ func currentStatus(c config.Config, pBin string) (statusOutput, error) {
 			SafetyMode: r.Matched.Enforcement, Enforcement: r.Matched.Enforcement,
 		}
 	}
+	pathValue := os.Getenv("PATH")
+	claudeActive := execution.IsActive("claude", pBin, pathValue)
+	codexActive := execution.IsActive("codex", pBin, pathValue)
 	return statusOutput{Directory: ctx.Directory, GitRoot: ctx.GitRoot, GitRemote: ctx.Remote, MatchedRule: matched,
 		Specificity: r.Specificity, ExpectedProfile: r.Expected, CurrentProfile: selected, SafetyMode: r.Enforcement,
 		SelectedProfile: selected, Enforcement: r.Enforcement,
 		ClaudeShim: shim.IsManaged(filepath.Join(pBin, "claude")), CodexShim: shim.IsManaged(filepath.Join(pBin, "codex")),
-		AutomaticActive: indexCanonical(filepath.SplitList(os.Getenv("PATH")), pBin) == 0,
-		Mismatch:        mismatch, Status: label}, nil
+		AutomaticActive: claudeActive && codexActive, ClaudeActive: claudeActive, CodexActive: codexActive,
+		Mismatch: mismatch, Status: label}, nil
 }
 
 func (a *app) statusCmd() *cobra.Command {
@@ -109,7 +115,7 @@ func (a *app) statusCmd() *cobra.Command {
 				currentLine = a.danger("Current profile:   " + s.CurrentProfile)
 			}
 			fmt.Fprintf(a.out, "\n%s\n%s\nSafety mode:       %s\n", a.success("Expected profile:  "+s.ExpectedProfile), currentLine, s.SafetyMode)
-			fmt.Fprintf(a.out, "\nClaude command:    %s\nCodex command:     %s\n", integrationState(s.ClaudeShim, s.AutomaticActive), integrationState(s.CodexShim, s.AutomaticActive))
+			fmt.Fprintf(a.out, "\nClaude command:    %s\nCodex command:     %s\n", integrationState(s.ClaudeShim, s.ClaudeActive), integrationState(s.CodexShim, s.CodexActive))
 			if s.Mismatch {
 				fmt.Fprintln(a.out, "\n"+a.warning("⚠ Profile mismatch"))
 			} else if s.ClaudeShim && s.CodexShim && s.AutomaticActive {

@@ -132,9 +132,18 @@ func TestTransparentShimFlow(t *testing.T) {
 	if err := os.Mkdir(capture, 0o700); err != nil {
 		t.Fatal(err)
 	}
+	legacyBin := filepath.Join(temp, "legacy-agentctx-bin")
+	if err := os.Mkdir(legacyBin, 0o700); err != nil {
+		t.Fatal(err)
+	}
+	legacyShim := "#!/bin/sh\n# agentctx-managed-shim-v1\nexit 99\n"
+	if err := os.WriteFile(filepath.Join(legacyBin, "claude"), []byte(legacyShim), 0o755); err != nil {
+		t.Fatal(err)
+	}
 	shimPath := filepath.Join(p.BinDir, "claude")
-	shimEnv := append(env, "CAPTURE_DIR="+capture, "PATH="+p.BinDir+string(os.PathListSeparator)+realBin+string(os.PathListSeparator)+basePath)
-	t.Setenv("PATH", p.BinDir+string(os.PathListSeparator)+realBin+string(os.PathListSeparator)+basePath)
+	shimPathValue := strings.Join([]string{p.BinDir, legacyBin, realBin, basePath}, string(os.PathListSeparator))
+	shimEnv := append(env, "CAPTURE_DIR="+capture, "PATH="+shimPathValue)
+	t.Setenv("PATH", shimPathValue)
 	cmd := exec.Command("claude", "--model", "test model", "$NOT_EXPANDED")
 	cmd.Dir, cmd.Env = repo, append(os.Environ(), shimEnv...)
 	err = cmd.Run()
