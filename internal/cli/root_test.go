@@ -66,7 +66,7 @@ func TestInitUsesUserFacingCopyAndChoices(t *testing.T) {
 	t.Setenv("SHELL", "/bin/zsh")
 
 	var out bytes.Buffer
-	a := &app{in: strings.NewReader("2\n1\nn\nn\n"), out: &out, errout: &out}
+	a := &app{in: strings.NewReader("2\n1\nn\n"), out: &out, errout: &out}
 	cmd := a.initCmd()
 	if err := cmd.Execute(); err != nil {
 		t.Fatal(err)
@@ -79,9 +79,9 @@ func TestInitUsesUserFacingCopyAndChoices(t *testing.T) {
 		"A mismatch happens when a project expects one profile", "work project expects",
 		"What should AgentWho do when profiles do not match?", "send work code through a personal account",
 		"existing Claude and Codex data stays untouched", "Automatic profile selection enabled for Claude and Codex",
-		"Show the active profile beside your command prompt", "AgentWho is ready",
+		"AgentWho is ready",
 		"Default profile: work", "Default safety mode: block",
-		"Default profile\n", "Mismatch protection\n", "Shell setup\n", "Prompt indicator\n", "Setup complete\n",
+		"Default profile\n", "Mismatch protection\n", "Shell setup\n", "Setup complete\n",
 	} {
 		if !strings.Contains(text, want) {
 			t.Errorf("onboarding output is missing %q\n%s", want, text)
@@ -102,7 +102,7 @@ func TestInitUsesUserFacingCopyAndChoices(t *testing.T) {
 			t.Errorf("automatic %s routing was not installed: %v", agentName, err)
 		}
 	}
-	for _, removed := range []string{"Create a separate work profile", "Enable terminal integration now?", "Route the `claude` and `codex` terminal commands through AgentWho?", "Terminal integration\n"} {
+	for _, removed := range []string{"Create a separate work profile", "Enable terminal integration now?", "Route the `claude` and `codex` terminal commands through AgentWho?", "Terminal integration\n", "Prompt indicator", "Show the active profile beside your command prompt"} {
 		if strings.Contains(text, removed) {
 			t.Errorf("onboarding still contains removed step %q:\n%s", removed, text)
 		}
@@ -123,7 +123,7 @@ func TestInitOffersBackedUpShellUpdateWhenProtectionEnabled(t *testing.T) {
 	}
 
 	var out bytes.Buffer
-	a := &app{in: strings.NewReader("1\n1\ny\nn\n"), out: &out, errout: &out}
+	a := &app{in: strings.NewReader("1\n1\ny\n"), out: &out, errout: &out}
 	if err := a.initCmd().Execute(); err != nil {
 		t.Fatal(err)
 	}
@@ -159,7 +159,7 @@ func TestInitShowsManualShellSetupOnlyWhenAutomaticUpdateIsDeclined(t *testing.T
 	t.Setenv("SHELL", "/bin/zsh")
 
 	var out bytes.Buffer
-	a := &app{in: strings.NewReader("1\n1\nn\nn\n"), out: &out, errout: &out}
+	a := &app{in: strings.NewReader("1\n1\nn\n"), out: &out, errout: &out}
 	if err := a.initCmd().Execute(); err != nil {
 		t.Fatal(err)
 	}

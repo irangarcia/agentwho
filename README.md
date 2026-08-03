@@ -131,7 +131,7 @@ Using arrow-key menus, AgentWho will:
 2. ask which profile should be the default;
 3. explain profile mismatches and let you choose `block` or `confirm`;
 4. protect the normal `claude` and `codex` commands automatically;
-5. offer backed-up shell setup and optional prompt instructions.
+5. offer backed-up shell setup when needed.
 
 Terminal command protection is installed automatically because transparent routing is AgentWho’s core feature. If your shell still needs setup, AgentWho asks before updating the shell file and creates a backup first. If you decline the file change, it prints the exact manual setup line instead.
 

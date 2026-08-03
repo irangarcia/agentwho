@@ -125,14 +125,6 @@ func (a *app) initCmd() *cobra.Command {
 					printShellInstructions(a.out, configFile, shellName)
 				}
 			}
-			a.initSection("Prompt indicator")
-			if askYes(reader, a.out, "Show the active profile beside your command prompt (for example, [agent:work])?") {
-				setup, err := shell.PromptSetup(shellName)
-				if err != nil {
-					return err
-				}
-				fmt.Fprintf(a.out, "\nAdd this after your existing prompt or theme setup in %s:\n\n%s\n", configFile, setup)
-			}
 			a.initSection("Setup complete")
 			fmt.Fprintln(a.out, a.success("AgentWho is ready."))
 			fmt.Fprintln(a.out)
