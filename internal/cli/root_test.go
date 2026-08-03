@@ -73,12 +73,12 @@ func TestInitUsesUserFacingCopyAndChoices(t *testing.T) {
 	}
 	text := out.String()
 	for _, want := range []string{
-		"Welcome to AgentWho", "How account separation works", "calls each isolated account setup a profile",
-		"two profiles: personal and work", "Which profile should AgentWho use by default?",
+		"Welcome to AgentWho", "automatically uses the right Claude and Codex account for each project",
+		"Which profile should AgentWho use by default?",
 		"Use your personal Claude and Codex accounts", "folders you have not assigned to personal",
 		"A mismatch happens when a project expects one profile", "work project expects",
 		"What should AgentWho do when profiles do not match?", "send work code through a personal account",
-		"existing Claude and Codex data stays untouched", "Automatic profile selection enabled for Claude and Codex",
+		"Automatic profile selection enabled for Claude and Codex",
 		"AgentWho is ready",
 		"Default profile: work", "Default safety mode: block",
 		"Default profile\n", "Mismatch protection\n", "Shell setup\n", "Setup complete\n",
@@ -102,7 +102,7 @@ func TestInitUsesUserFacingCopyAndChoices(t *testing.T) {
 			t.Errorf("automatic %s routing was not installed: %v", agentName, err)
 		}
 	}
-	for _, removed := range []string{"Create a separate work profile", "Enable terminal integration now?", "Route the `claude` and `codex` terminal commands through AgentWho?", "Terminal integration\n", "Prompt indicator", "Show the active profile beside your command prompt"} {
+	for _, removed := range []string{"How account separation works", "Your credentials remain managed", "Create a separate work profile", "Enable terminal integration now?", "Route the `claude` and `codex` terminal commands through AgentWho?", "Terminal integration\n", "Prompt indicator", "Show the active profile beside your command prompt"} {
 		if strings.Contains(text, removed) {
 			t.Errorf("onboarding still contains removed step %q:\n%s", removed, text)
 		}

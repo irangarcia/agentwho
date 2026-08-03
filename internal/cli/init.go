@@ -24,18 +24,7 @@ func (a *app) initCmd() *cobra.Command {
 			}
 			reader := bufio.NewReader(a.in)
 			fmt.Fprintln(a.out, a.accent("Welcome to AgentWho"))
-			fmt.Fprintln(a.out, "\nAgentWho keeps your personal and work Claude and Codex accounts")
-			fmt.Fprintln(a.out, "separate and selects the right profile for each project.")
-			fmt.Fprintln(a.out, "\nYour credentials remain managed by the official Claude and Codex CLIs.")
-			fmt.Fprint(a.out, "AgentWho never reads or copies them.\n\n")
-			a.initSection("How account separation works")
-			fmt.Fprintln(a.out, "AgentWho calls each isolated account setup a profile. Onboarding creates")
-			fmt.Fprintln(a.out, "two profiles: personal and work.")
-			fmt.Fprintln(a.out, "\nA profile groups the Claude and Codex accounts for one identity. It also")
-			fmt.Fprintln(a.out, "has its own user-level settings and MCP setup, plugins or skills, and")
-			fmt.Fprintln(a.out, "session history. Those do not automatically carry between profiles.")
-			fmt.Fprintln(a.out, "\nYour existing Claude and Codex data stays untouched. AgentWho never copies,")
-			fmt.Fprintln(a.out, "moves, or deletes it.")
+			fmt.Fprintln(a.out, "\nAgentWho automatically uses the right Claude and Codex account for each project.")
 			if _, err := os.Stat(p.Config); err == nil {
 				if !interactive(a.stdinFile) {
 					return fmt.Errorf("AgentWho is already configured at %s\n\nRun this command in an interactive terminal to replace it", p.Config)
