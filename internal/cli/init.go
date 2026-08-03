@@ -29,9 +29,7 @@ func (a *app) initCmd() *cobra.Command {
 				if !interactive(a.stdinFile) {
 					return fmt.Errorf("AgentWho is already configured at %s\n\nRun this command in an interactive terminal to replace it", p.Config)
 				}
-				fmt.Fprintln(a.out, "AgentWho is already configured at:")
-				fmt.Fprintln(a.out, " ", p.Config)
-				if !askYes(reader, a.out, "Replace the existing configuration?") {
+				if !a.confirmConfigReplacement(reader, p.Config) {
 					fmt.Fprintln(a.out, "No changes made.")
 					return nil
 				}
@@ -135,4 +133,13 @@ func (a *app) initCmd() *cobra.Command {
 
 func (a *app) initSection(title string) {
 	fmt.Fprintf(a.out, "\n%s\n%s\n", a.muted("────────────────────────────────────────"), a.accent(title))
+}
+
+func (a *app) confirmConfigReplacement(reader *bufio.Reader, configPath string) bool {
+	fmt.Fprintln(a.out, "\nAgentWho is already set up.")
+	fmt.Fprintln(a.out, "\nConfiguration:")
+	fmt.Fprintln(a.out, " ", configPath)
+	fmt.Fprintln(a.out, "\nStarting over replaces profiles, bindings, and defaults.")
+	fmt.Fprintln(a.out, "Existing profile sign-ins and data are kept.")
+	return askYes(reader, a.out, "\nStart over?")
 }

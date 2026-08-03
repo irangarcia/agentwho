@@ -1,7 +1,9 @@
 package cli
 
 import (
+	"bufio"
 	"bytes"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -174,6 +176,28 @@ func TestInitShowsManualShellSetupOnlyWhenAutomaticUpdateIsDeclined(t *testing.T
 	}
 	if _, err := os.Stat(filepath.Join(root, ".zshrc")); !os.IsNotExist(err) {
 		t.Fatalf("declining the shell update changed .zshrc: %v", err)
+	}
+}
+
+func TestInitExplainsExistingConfigurationReplacement(t *testing.T) {
+	p := "/example/config/agentwho/config.yaml"
+	var out bytes.Buffer
+	a := &app{out: &out}
+	fmt.Fprintln(&out, "AgentWho automatically uses the right Claude and Codex account for each project.")
+	if a.confirmConfigReplacement(bufio.NewReader(strings.NewReader("n\n")), p) {
+		t.Fatal("replacement was accepted after a no response")
+	}
+	text := out.String()
+	for _, want := range []string{
+		"account for each project.\n\nAgentWho is already set up.",
+		"Configuration:\n  " + p,
+		"Starting over replaces profiles, bindings, and defaults.",
+		"Existing profile sign-ins and data are kept.",
+		"Start over? [y/N]",
+	} {
+		if !strings.Contains(text, want) {
+			t.Errorf("existing-configuration output is missing %q:\n%s", want, text)
+		}
 	}
 }
 
